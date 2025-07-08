@@ -1,0 +1,15 @@
+[package]
+name = "iso2god"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/rust/lib.rs"
+
+[dependencies]
+anyhow = { version = "1.0.97", features = ["backtrace"] }
+clap = { version = "4.5.32", features = ["derive"] }
+rayon = "1.10.0"
+shell-words = "1"
+iso2god = { git = "https://github.com/iliazeus/iso2god-rs.git" }
