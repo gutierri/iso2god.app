@@ -1,32 +1,44 @@
-TARGET ?= x86_64-pc-windows-gnu
+ARCH ?= x86_64
+OST ?= linux
 
-build-rust:
+ifeq ($(OST),windows)
+	LIB_NAME = iso2god
+	LIB_SUFFIX = dll
+	TARGET_SUFFIX = pc-$(OST)-gnu
+else
+	LIB_NAME = libiso2god
+	LIB_SUFFIX = so
+	TARGET_SUFFIX = unknown-$(OST)-gnu
+endif
+
+TARGET ?= $(ARCH)-$(TARGET_SUFFIX)
+PYVENV := .venv
+PIP := $(PYVENV)/bin/pip
+PY := $(PYVENV)/bin/python
+
+.PHONY: all
+all: clean package
+
+.PHONY: rust
+rust:
 	cargo build --release --target=$(TARGET)
+	mkdir -p src/iso2god/resources
+	cp -v \
+		target/$(TARGET)/release/$(LIB_NAME).$(LIB_SUFFIX) \
+		src/iso2god/resources/iso2god-$(ARCH)-$(OST).$(LIB_SUFFIX)
 
-windows: build-rust
-	cp -v target/$(TARGET)/release/iso2god.dll src/iso2god/resources/iso2god-x86_64-windows.dll
-
-linux:
-	make TARGET=x86_64-unknown-linux-gnu build-rust
-	cp -v target/x86_64-unknown-linux-gnu/release/libiso2god.so src/iso2god/resources/iso2god-x86_64-linux.so
-
-android:
-	make TARGET=aarch64-linux-android build-rust
-	cp -v target/aarch64-linux-android/release/libiso2god.so src/iso2god/resources/iso2god-aarch64-android.so
-
-run:
-	briefcase.exe run windows
-
-python-build:
-	briefcase.exe create
-	briefcase.exe build
+.PHONY: python
+python:
+	briefcase build $(OST)
 
 .PHONY: build
-build: clean build-rust python-build
+build: rust python
 
-package:
-	briefcase.exe package
+.PHONY: package
+package: build
+	briefcase package $(PACKAGE_ARGS)
 
+.PHONY: clean
 clean:
-	rm -rf build
-	rm -rf target
+	rm -rf build/ target/ .venv
+	find src -type f \( -name "*.so" -o -name "*.dll" \) -delete
