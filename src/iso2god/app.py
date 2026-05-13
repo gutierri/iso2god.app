@@ -168,8 +168,9 @@ class Iso2GOD(toga.App):
 
         iso_path = Path(iso_path).absolute().as_posix()
         dest_dir = Path(dest_dir).absolute().as_posix()
-        args = (f'. {iso_path} {dest_dir}').encode('utf-8')
+        args = (f'. {shlex.quote(iso_path)} {shlex.quote(dest_dir)}').encode('utf-8')
 
+        logging.debug('args=%s', args)
         logging.debug('Call DLL lib function from Ctypes...')
 
         iso2god.run_iso2god(ctypes.c_char_p(args))
